@@ -23,18 +23,17 @@ void SPI_voidInit(SPI_MODE_t copy_enumSpiType)
 	switch(copy_enumSpiType)
 	{
 		case SPI_MASTER:
-		/* Set SPI to master mode */
-		SET_BIT(SPI_REGS->SPCR_REG, MSTR);
-		/* Set clock rate fosc/128 */
-		CLR_BIT(SPI_REGS->SPCR_REG, SPR0);
-		SET_BIT(SPI_REGS->SPCR_REG, SPR1);
-		CLR_BIT(SPI_REGS->SPSR_REG, SPI2X);
-		break;
-
+			/* Set SPI to master mode */
+			SET_BIT(SPI_REGS->SPCR_REG, MSTR);
+			/* Set clock rate fosc/128 */
+			CLR_BIT(SPI_REGS->SPCR_REG, SPR0);
+			SET_BIT(SPI_REGS->SPCR_REG, SPR1);
+			CLR_BIT(SPI_REGS->SPSR_REG, SPI2X);
+			break;
 		case SPI_SLAVE:
-		/* Set SPI to slave mode */
-		CLR_BIT(SPI_REGS->SPCR_REG, MSTR);
-		break;
+			/* Set SPI to slave mode */
+			CLR_BIT(SPI_REGS->SPCR_REG, MSTR);
+			break;
 	}
 
 	/* Enable SPI */
@@ -43,7 +42,6 @@ void SPI_voidInit(SPI_MODE_t copy_enumSpiType)
 
 void SPI_voidTransieve(u8 copy_u8TxData, u8* copy_pu8RxData)
 {
-	/* Check if receive buffer pointer is valid */
 	if (copy_pu8RxData != '\0')
 	{
 		/* Send data */
