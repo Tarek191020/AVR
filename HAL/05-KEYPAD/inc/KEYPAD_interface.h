@@ -17,9 +17,10 @@ typedef struct {
 	u8 ROWPINS[4];      // Pins of the keypad rows (4 rows)
 	u8 COLSPORT;        // Port of the keypad columns
 	u8 COLPINS[4];      // Pins of the keypad columns (4 columns)
+	u8 arr[4][4];
 }KEYPADCONFIG_t;
 
 void KEYPAD_voidInit();
-void KEYPAD_voidGetbutton(u8 *copy_u8press);
+void KEYPAD_voidGetButton(u8 *copy_u8press);
 
 #endif
