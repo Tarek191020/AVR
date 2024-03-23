@@ -11,13 +11,16 @@
 #include "DIO_interface.h"
 #include "PWM_interface.h"
 
+#include "Servo_interface.h"
+#include "SERVO_config.h"
+
 void SERVO_voidInit(void)
 {
-	DIO_voidSetPinDirection(DIO_PORTD, DIO_PIN5, DIO_PIN_OUTPUT);
+	DIO_voidSetPinDirection(SERVO_PORT, SERVO_PIN, DIO_PIN_OUTPUT);
 	PWM_voidInitChannel_1A();
 }
 
-void SERVO_voidOn(u8 copy_u8Angle)
+void SERVO_voidSetAngle(u8 copy_u8Angle)
 {
 	f32 DutyCycle = (((copy_u8Angle)/180.0)*5)+5;
 	PWM_voidGenerate_PWM_Channel_1A(50, DutyCycle);

@@ -12,7 +12,9 @@
 
 void SERVO_voidInit(void);
 
-void SERVO_voidOn(u8 copy_u8Angle);
-void SERVO_voidOff(void);
+void SERVO_voidSetAngle(u8 copy_u8Angle);
+
+void SERVO_voidOff();
+
 
 #endif /* SERVO_INTERFACE_H_ */
