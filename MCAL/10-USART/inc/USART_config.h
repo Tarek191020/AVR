@@ -1,0 +1,49 @@
+/*
+ * USART_config.h
+ *
+ * Created: 3/23/2024 1:06:13 AM
+ *  Author: Tarek Alaa
+ */ 
+
+
+#ifndef USART_CONFIG_H_
+#define USART_CONFIG_H_
+
+#include "USART_private.h"
+
+#define TX_BUFFER_SIZE 100
+#define RX_BUFFER_SIZE 100
+
+
+/* Select Baud Rate
+1- USART_BAUDRATE_1200
+2- USART_BAUDRATE_2400
+3- USART_BAUDRATE_4800
+4- USART_BAUDRATE_9600	
+5- USART_BAUDRATE_19200
+6- USART_BAUDRATE_115200
+*/
+#define BAUD_RATE					USART_BAUDRATE_9600
+
+
+/* Select number of data bits
+1- USART_5_BIT_DATA
+2- USART_6_BIT_DATA
+3- USART_7_BIT_DATA
+4- USART_8_BIT_DATA
+*/
+#define USART_DATA_BITS_NUM			USART_8_BIT_DATA
+
+/* Select number of Stop bits
+1- USART_1_STOP_BIT
+2- USART_2_STOP_BIT
+*/
+#define USART_STOP_BITS_NUM			USART_1_STOP_BIT
+
+/* Select Type of Parity
+1- USART_EVEN_PARITY
+2- USART_ODD_PARITY	
+*/
+#define USART_PARITY_TYPE			USART_EVEN_PARITY
+
+#endif /* USART_CONFIG_H_ */
