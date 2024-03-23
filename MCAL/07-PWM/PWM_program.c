@@ -77,8 +77,8 @@ void PWM_voidGenerate_PWM_Channel_0	(u8 copy_u8DutyCycle, PRESCALER_t copy_enumP
 }
 void PWM_voidStop_PWM_Channel_0()
 {
-	//select no clock
-	TCCR0_REG |= _NO_CLOCK;
+	// Disable PWM by clearing the PWM control register (TCCR0)
+	TCCR0_REG =0;
 }
 
 
@@ -125,6 +125,14 @@ void PWM_voidGenerate_PWM_Channel_1A(u16 copy_u16Frequency_HZ, f32 copy_f32DutyC
 
 void PWM_voidStop_PWM_Channel_1A()
 {
+	/*
+	CLR_BIT(TMR1_REG->TCCR1A, TCCR1A_WGM10);
+	CLR_BIT(TMR1_REG->TCCR1A, TCCR1A_WGM11);
+	CLR_BIT(TMR1_REG->TCCR1B, TCCR1B_WGM12);
+	CLR_BIT(TMR1_REG->TCCR1B, TCCR1B_WGM13);
+	CLR_BIT(TMR1_REG->TCCR1A, TCCR1A_COM1A0);
+	CLR_BIT(TMR1_REG->TCCR1A, TCCR1A_COM1A1);
+	*/
 	CLR_BIT(TMR1_REG->TCCR1B, TCCR1B_CS10);
 	CLR_BIT(TMR1_REG->TCCR1B, TCCR1B_CS11);
 	CLR_BIT(TMR1_REG->TCCR1B, TCCR1B_CS12);
@@ -191,6 +199,6 @@ void PWM_voidGenerate_PWM_Channel_2	(u8 copy_u8DutyCycle, PRESCALER_t copy_enumP
 }
 void PWM_voidStop_PWM_Channel_2		(void)
 {
-	//select no clock
-	TCCR2_REG |= _NO_CLOCK;
+	// Disable PWM by clearing the PWM control register (TCCR0)
+	TCCR2_REG =0;
 }
