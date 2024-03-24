@@ -17,5 +17,7 @@ typedef unsigned char		BOOL;
 #define TRUE				((u8)1)
 #define FALSE				((u8)0)
 
+#define NULL				((void*)0)
+
 
 #endif // STD_TYPES_H_INCLUDED
