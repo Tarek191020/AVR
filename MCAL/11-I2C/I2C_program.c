@@ -15,98 +15,252 @@
 #include "I2C_config.h"
 #include "I2C_private.h"
 
-void I2C_voidMastrInit(u8 copy_u8Address)
+/* UTILES_LIB */
+#include "STD_TYPES.h"
+#include "BIT_MATH.h"
+
+/* MCAL */
+#include "I2C_interface.h"
+#include "I2C_private.h"
+#include "I2C_register.h"
+#include "I2C_config.h"
+
+
+void I2C_voidInitMaster(u8 copy_u8MasterAddress)
 {
 	/* Configure I2C clock prescaler */
-	TWSR_REG |= I2C_Cofig.PRESCALER;
+	TWSR_REG = I2C_PRESCALER;
 	
 	/* Calculate and set TWBR register value */
-	TWBR_REG = (F_CPU - (16*SCL_FREQUENCY)) / (2 * SCL_FREQUENCY * (1 << (2 * I2C_Cofig.PRESCALER)));
+	TWBR_REG = (F_CPU - (16*SCL_FREQUENCY)) / (2 * SCL_FREQUENCY * (1 << (2 * I2C_PRESCALER)));
+	
+	// Set Prescaller = 1 >> Set Freq. = 400KHZ
+	//TWBR_REG = 12;
+	
+	// Enable TWI Peripheral
+	SET_BIT(TWCR_REG, TWCR_TWEN);
 	
 	/*set master address*/
-	TWAR_REG |=(copy_u8Address<<1);
+	TWAR_REG |=(copy_u8MasterAddress<<1);
 }
 
-void I2C_voidSlaveInit(u8 copy_u8Address)
+
+void I2C_voidSendStartCondition(void)
 {
-	/*set slave address*/
-	TWAR_REG |=(copy_u8Address<<1) ;
+	// Request Start Condition
+	SET_BIT(TWCR_REG, TWCR_TWSTA);
+	
+	// Clear flag to start current job
+	SET_BIT(TWCR_REG, TWCR_TWINT);
+	
+	// Busy Wait for the flag
+	while(0 == GET_BIT(TWCR_REG, TWCR_TWINT));
+	
+	// Check ACK = SC ACK
+	while(I2C_STATUS_VALUE != I2C_START_CONDITION_ACK);
 }
 
-void I2C_voidStartCondition(void)
+
+void I2C_voidSendRepeatedStartCondition(void)
 {
-	/* Generate start condition */
-	TWCR_REG = (1<<TWCR_TWINT) | (1<<TWCR_TWSTA) | (1<<TWCR_TWEN) | (I2C_Cofig.ACK<<TWCR_TWEA);
+	// Request Start Condition
+	SET_BIT(TWCR_REG, TWCR_TWSTA);
 	
-	// Wait until TWINT flag is set indicating the start condition has been transmitted
-	while (!(TWCR_REG & (1<<TWCR_TWINT)));
+	// Clear flag to start current job
+	SET_BIT(TWCR_REG, TWCR_TWINT);
+	
+	// Busy Wait for the flag
+	while(0 == GET_BIT(TWCR_REG, TWCR_TWINT));
+	
+	// Check ACK = Repeated SC ACK
+	while(I2C_STATUS_VALUE != I2C_REP_START_CONDITION_ACK);
 }
 
-void I2C_voidStopCondition(void)
+
+void I2C_voidSendStopCondition(void)
 {
-	/* Generate stop condition */
-	TWCR_REG = (1<<TWCR_TWINT)|(1<<TWCR_TWEN)|(1<<TWCR_TWSTO);
+	// Request Stop Condition
+	SET_BIT(TWCR_REG, TWCR_TWSTO);
+	
+	// Clear flag to start current job
+	SET_BIT(TWCR_REG, TWCR_TWINT);
 }
 
-void I2C_voidSendAddressWrite(u8 copy_u8Address)
+
+void I2C_voidSendSlaveAddWithWrite(u8 copy_u8SlaveAdd)
 {
-	/* Load address into TWI register */
-	TWDR_REG = copy_u8Address<<1;
-	
-	/* Clear TWINT bit to start transmission of address */
-	TWCR_REG = (1<<TWCR_TWINT) | (1<<TWCR_TWEN) | (I2C_Cofig.ACK<<TWCR_TWEA);
-	
-	/* Wait until transmission is complete */
-	while(!(TWCR_REG & (1<<TWCR_TWINT)));
+	if(copy_u8SlaveAdd<128)
+	{
+		TWDR_REG = (copy_u8SlaveAdd<<1);
+		
+		// Select write operation
+		CLR_BIT(TWDR_REG, 0);
+		
+		// Clear start condition bit
+		CLR_BIT(TWCR_REG, TWCR_TWSTA);
+		
+		// Clear flag to start current job
+		SET_BIT(TWCR_REG, TWCR_TWINT);
+		
+		// Busy Wait for the flag
+		while(0 == GET_BIT(TWCR_REG, TWCR_TWINT));
+		
+		// Check ACK = Master transmit ( slave address + Write request )
+		while(I2C_STATUS_VALUE != I2C_SLAVE_ADDRESS_WRITE_ACK);
+	}
+	else
+	{
+		// return Error State
+	}
 }
 
-void I2C_voidSendAddressRead(u8 copy_u8Address)
+
+void I2C_voidSendSlaveAddWithRead(u8 copy_u8SlaveAdd)
 {
-	/* Load address into TWI register with read bit set */
-	TWDR_REG = (copy_u8Address<<1) | 0x01;
-	
-	/* Clear TWINT bit to start transmission of address */
-	TWCR_REG = (1<<TWCR_TWINT) | (1<<TWCR_TWEN) | (I2C_Cofig.ACK<<TWCR_TWEA);
-	
-	/* Wait until transmission is complete */
-	while(!(TWCR_REG & (1<<TWCR_TWINT)));
+	if(copy_u8SlaveAdd<128)
+	{
+		TWDR_REG = (copy_u8SlaveAdd<<1);
+		
+		// Select read operation
+		SET_BIT(TWDR_REG, 0);
+		
+		// Clear start condition bit
+		CLR_BIT(TWCR_REG, TWCR_TWSTA);
+		
+		// Clear flag to start current job
+		SET_BIT(TWCR_REG, TWCR_TWINT);
+		
+		// Busy Wait for the flag
+		while(0 == GET_BIT(TWCR_REG, TWCR_TWINT));
+		
+		// Check ACK = Master transmit ( slave address + read request )
+		while(I2C_STATUS_VALUE != I2C_SLAVE_ADDRESS_READ_ACK);
+	}
+	else
+	{
+		// return Error State
+	}
 }
 
-void I2C_voidSendData(u8 copy_u8Byte)
+
+void I2C_voidTransmitMasterDataByte(u8 copy_u8TxData)
 {
-	/* Load data into TWI register */
-	TWDR_REG = copy_u8Byte;
+	// Write Data into data register
+	TWDR_REG = copy_u8TxData;
 	
-	/* Clear TWINT bit to start transmission of data */
-	TWCR_REG = (1<<TWCR_TWINT) | (1<<TWCR_TWEN);
+	// Clear flag to start current job
+	SET_BIT(TWCR_REG, TWCR_TWINT);
 	
-	/* Wait until transmission is complete */
-	while(!(TWCR_REG & (1<<TWCR_TWINT)));
+	// Busy Wait for the flag
+	while(0 == GET_BIT(TWCR_REG, TWCR_TWINT));
+	
+	// Check ACK = Master transmit data ACK
+	while(I2C_STATUS_VALUE != I2C_MASTER_DATA_TRANSMIT_ACK);
 }
 
-void I2C_voidReceiveData(u8* copy_pu8Byte)
+
+void I2C_voidReceiveMasterDataByteWithAck(u8* copy_pu8RxData)
 {
-	/* Clear TWINT bit to start receiving data */
-	TWCR_REG = (1<<TWCR_TWINT) | (1<<TWCR_TWEN) | (I2C_Cofig.ACK<<TWCR_TWEA);
-	
-	/* Wait until data is received */
-	while(!(TWCR_REG & (1<<TWCR_TWINT)));
-	
-	/* Read received data from TWI register */
-	*copy_pu8Byte = TWDR_REG;
+	if(copy_pu8RxData!=NULL)
+	{
+		// Enable ACK
+		SET_BIT(TWCR_REG, TWCR_TWEA);
+		
+		// Clear flag to start current job
+		SET_BIT(TWCR_REG, TWCR_TWINT);
+		
+		// Busy Wait for the flag
+		while(0 == GET_BIT(TWCR_REG, TWCR_TWINT));
+		
+		// Check ACK = Master received data with ACK
+		while(I2C_STATUS_VALUE != I2C_MASTER_DATA_RECIEVE_ACK);
+		
+		*copy_pu8RxData = TWDR_REG;
+		
+		// Disable ACK
+		CLR_BIT(TWCR_REG, TWCR_TWEA);
+	}
+	else
+	{
+		// return Error State
+	}
 }
 
-void I2C_voidGetStatus(u8* copy_pu8Status)
+
+void I2C_voidReceiveMasterDataByteWithNack(u8* copy_pu8RxData)
 {
-	/* Read status register */
-	*copy_pu8Status = (TWSR_REG & 0xF8);
+	if(copy_pu8RxData!=NULL)
+	{
+		// Clear flag to start current job
+		SET_BIT(TWCR_REG, TWCR_TWINT);
+		
+		// Busy Wait for the flag
+		while(0 == GET_BIT(TWCR_REG, TWCR_TWINT));
+		
+		// Check ACK = Master received data with NACK
+		while(I2C_STATUS_VALUE != I2C_MASTER_DATA_RECIEVE_NACK);
+		
+		*copy_pu8RxData = TWDR_REG;
+	}
+	else
+	{
+		// return Error State
+	}
 }
 
-void I2C_voidRepeatedStartCondition(void)
+void I2C_voidInitSlave(u8 copy_u8SlaveAddress)
 {
-	/* Generate repeated start condition */
-	TWCR_REG = (1<<TWCR_TWINT) | (1<<TWCR_TWSTA) | (1<<TWCR_TWEN) | (I2C_Cofig.ACK<<TWCR_TWEA);
-	
-	// Wait until TWINT flag is set indicating the repeated start condition has been transmitted
-	while (!(TWCR_REG & (1<<TWCR_TWINT)));
+	// Set the slave address
+	TWAR_REG = (copy_u8SlaveAddress << 1);
+
+	// Enable TWI Peripheral
+	SET_BIT(TWCR_REG, TWCR_TWEN);
+}
+void I2C_voidTransmitSlaveDataByte(u8  copy_u8TxData)
+{
+	// Load data into the data register
+	TWDR_REG = copy_u8TxData;
+
+	// Clear flag to start current job
+	SET_BIT(TWCR_REG, TWCR_TWINT);
+
+	// Busy wait for the flag
+	while (0 == GET_BIT(TWCR_REG, TWCR_TWINT));
+
+	// Check ACK = Slave transmit data ACK
+	while (I2C_STATUS_VALUE != I2C_SLAVE_DATA_TRANSMIT_ACK);
+}
+void I2C_voidReceiveSlaveDataByteWithAck  (u8* copy_pu8RxData)
+{
+	// Enable ACK
+	SET_BIT(TWCR_REG, TWCR_TWEA);
+
+	// Clear flag to start current job
+	SET_BIT(TWCR_REG, TWCR_TWINT);
+
+	// Busy wait for the flag
+	while (0 == GET_BIT(TWCR_REG, TWCR_TWINT));
+
+	// Check ACK = Slave received data with ACK
+	while (I2C_STATUS_VALUE != I2C_SLAVE_DATA_RECEIVE_ACK);
+
+	// Read received data from TWI register
+	*copy_pu8RxData = TWDR_REG;
+
+	// Disable ACK
+	CLR_BIT(TWCR_REG, TWCR_TWEA);
+}
+void I2C_voidReceiveSlaveDataByteWithNack (u8* copy_pu8RxData)
+{
+	// Clear flag to start current job
+	SET_BIT(TWCR_REG, TWCR_TWINT);
+
+	// Busy wait for the flag
+	while (0 == GET_BIT(TWCR_REG, TWCR_TWINT));
+
+	// Check ACK = Slave received data with NACK
+	while (I2C_STATUS_VALUE != I2C_SLAVE_DATA_RECEIVE_NACK);
+
+	// Read received data from TWI register
+	*copy_pu8RxData = TWDR_REG;
 }

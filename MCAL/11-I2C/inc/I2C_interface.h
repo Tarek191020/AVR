@@ -10,55 +10,27 @@
 #define I2C_INTERFACE_H_
 
 
-typedef enum
-{
-	_1_PRESCALER,
-	_4_PRESCALER,
-	_16_PRESCALER,
-	_64_PRESCALER,
-}I2C_PRESCALER_t;
 
-typedef enum
-{
-	I2C_NACK,
-	I2C_ACK
-}I2C_ACK_t;
 
-typedef struct  
-{
-	I2C_PRESCALER_t PRESCALER;
-	I2C_ACK_t		ACK;
-}I2C_CONFIG_t;
 
-/* Initialize I2C module as master */
-void I2C_voidMastrInit(u8 copy_u8Address);
+/*************** APIS PROTOTYPES ***************/
 
-/* Initialize I2C module as slave */
-void I2C_voidSlaveInit(u8 copy_u8Address);
+//Master APIS
+void I2C_voidInitMaster                   (u8 copy_u8MasterAddress);
+void I2C_voidSendStartCondition           (void);
+void I2C_voidSendRepeatedStartCondition   (void);
+void I2C_voidSendStopCondition            (void);
+void I2C_voidSendSlaveAddWithWrite        (u8  copy_u8SlaveAdd);
+void I2C_voidSendSlaveAddWithRead         (u8  copy_u8SlaveAdd);
+void I2C_voidTransmitMasterDataByte       (u8  copy_u8TxData);
+void I2C_voidReceiveMasterDataByteWithAck (u8* copy_pu8RxData);
+void I2C_voidReceiveMasterDataByteWithNack(u8* copy_pu8RxData);
 
-/* Generate start condition */
-void I2C_voidStartCondition(void);
-
-/* Generate stop condition */
-void I2C_voidStopCondition(void);
-
-/* Send address for write operation */
-void I2C_voidSendAddressWrite(u8 copy_u8Address);
-
-/* Send address for read operation */
-void I2C_voidSendAddressRead(u8 copy_u8Address);
-
-/* Send data byte */
-void I2C_voidSendData(u8 copy_u8Byte);
-
-/* Receive data byte */
-void I2C_voidReceiveData(u8* copy_pu8Byte);
-
-/* Get status of I2C communication */
-void I2C_voidGetStatus(u8* copy_pu8Status);
-
-/* Generate repeated start condition */
-void I2C_voidRepeatedStartCondition(void);
+//Slave APIS
+void I2C_voidInitSlave                    (u8 copy_u8SlaveAddress);
+void I2C_voidTransmitSlaveDataByte        (u8  copy_u8TxData);
+void I2C_voidReceiveSlaveDataByteWithAck  (u8* copy_pu8RxData);
+void I2C_voidReceiveSlaveDataByteWithNack (u8* copy_pu8RxData);
 
 
 #endif /* I2C_INTERFACE_H_ */
