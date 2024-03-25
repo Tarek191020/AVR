@@ -218,6 +218,9 @@ void I2C_voidInitSlave(u8 copy_u8SlaveAddress)
 }
 void I2C_voidTransmitSlaveDataByte(u8  copy_u8TxData)
 {
+	// Wait until address received with read request
+	while (I2C_STATUS_VALUE != I2C_SLAVE_ADDRESS_RECEIVE_READ);
+	
 	// Load data into the data register
 	TWDR_REG = copy_u8TxData;
 
@@ -232,6 +235,9 @@ void I2C_voidTransmitSlaveDataByte(u8  copy_u8TxData)
 }
 void I2C_voidReceiveSlaveDataByteWithAck  (u8* copy_pu8RxData)
 {
+	// Wait until address received with write request
+	while (I2C_STATUS_VALUE != I2C_SLAVE_ADDRESS_RECEIVE_WRITE);
+	
 	// Enable ACK
 	SET_BIT(TWCR_REG, TWCR_TWEA);
 
@@ -252,6 +258,9 @@ void I2C_voidReceiveSlaveDataByteWithAck  (u8* copy_pu8RxData)
 }
 void I2C_voidReceiveSlaveDataByteWithNack (u8* copy_pu8RxData)
 {
+	// Wait until address received with write request
+	while (I2C_STATUS_VALUE != I2C_SLAVE_ADDRESS_RECEIVE_WRITE);
+	
 	// Clear flag to start current job
 	SET_BIT(TWCR_REG, TWCR_TWINT);
 
